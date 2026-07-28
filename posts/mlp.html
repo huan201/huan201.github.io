@@ -14,14 +14,16 @@
         <div class="nav-links">
             <a href="../index.html">首页</a>
             <a href="../tags/index.html">标签</a>
+            <a href="../friends/index.html">友链</a>
             <a href="../search.html">搜索</a>
+            <a href="https://github.com/huan201/blog-maker" target="_blank" class="nav-github" title="GitHub">GH</a>
         </div>
     </nav>
     <main class="main">
 <h1>和神经网络的最初相遇：mlp</h1>
-<p class="meta">日期: 2026-07-27 | 标签: 神经网络,理论学习,多层感知机,数字识别,机器学习 | 字数: 2803</p>
+<p class="meta">日期: 2026-07-27 | 标签: 神经网络,理论学习,多层感知机,数字识别,机器学习 | 字数: 2801 | <span id="read-count">加载中...</span></p>
 <div class="main-content">
-<h1>简单学习mlp概率并使用其训练一个mnist数据集识别</h1>
+<h1>简单学习mlp并使用其训练一个mnist数据集识别</h1>
 <h2>1. 引言</h2>
 <ul>
 <li>简单了解什么是mlp  他的基本结构是什么</li>
@@ -117,7 +119,7 @@ $$
 <br>其中翻转矩阵可以从具体矩阵的大小匹配上解释</p>
 <h2>4. pytorch实现mnist识别并比较不同结构的模型效果</h2>
 <ul>
-<li>这里笔者实现两种模型结构<br><strong>512-&gt;256-&gt;128</strong><br><strong>100-&gt;696-&gt;100</strong><br>他们代表了两种结构第一种是逐渐递减第二种是中层突然提升<br><br>笔者这里最开始选择的第二种因为笔者曾经在transfomer的相关文章中看过一个结论 <br><strong>隐藏层层高维度可以获取更多隐藏的信息</strong> <br>但就结果来看似乎并不这样再场外援助学长之后了解到mnist本身隐藏的信息并不大而我们我们这个结构存在这些问题<br>第一结构过于跳跃导致模型十分容易出现问题<br>第二从信息角度从输入层到第一层100再到第二层500本质上存在信息有损压缩导致这个模型丢失了一部分信息<br>从笔者实际的训练结果来看 在这两个模型结构，训练轮次较少，数据量不大的情况下会出现下方这个结果<img src="../static/images/comparison_curves_joint.png" alt="comparison_curves_joint.png" />
+<li>这里笔者实现两种模型结构<br><strong>512-&gt;256-&gt;128</strong><br><strong>100-&gt;696-&gt;100</strong><br>他们代表了两种结构第一种是逐渐递减第二种是中层突然提升<br><br>笔者这里最开始选择的第二种因为笔者曾经在transfomer的相关文章中看过一个结论 <br><strong>隐藏层层高维度可以获取更多隐藏的信息</strong> <br>但就结果来看似乎并不这样在场外援助学长之后了解到mnist本身隐藏的信息并不大而我们我们这个结构存在这些问题<br>第一结构过于跳跃导致模型十分容易出现问题<br>第二从信息角度从输入层到第一层100再到第二层500本质上存在信息有损压缩导致这个模型丢失了一部分信息<br>从笔者实际的训练结果来看 在这两个模型结构，训练轮次较少，数据量不大的情况下会出现下方这个结果<img src="../static/images/comparison_curves_joint.png" alt="comparison_curves_joint.png" />
 <strong>很明显模型一准度度高于模型二</strong><br>本次训练其他数据在下方这个附件中可以下载查看<a href="../static/attachments/%E9%99%84%E4%BB%B6.zip">附件.zip</a></li>
 </ul>
 <h2>5.感悟</h2>
@@ -127,6 +129,14 @@ $$
 </ul>
 
 </div>
+<script>
+(function(){
+  var key = 'blog-read-' + location.pathname;
+  var count = (parseInt(localStorage.getItem(key)) || 0) + 1;
+  localStorage.setItem(key, count);
+  document.getElementById('read-count').textContent = '阅读 ' + count + ' 次';
+})();
+</script>
 
     </main>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>

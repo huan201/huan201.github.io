@@ -265,7 +265,46 @@ a[href*="../static/attachments/"]::before {
     opacity: 0.6;
 }
 
-/* --- 搜索 --- */
+/* --- 友链卡片 --- */
+.friends-list ul {
+    list-style: none;
+    padding: 0;
+}
+.friends-list li {
+    padding: 1rem 1.25rem;
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 12px;
+    margin-bottom: 0.6rem;
+    transition: all 0.2s ease;
+}
+.friends-list li:hover {
+    border-color: #0071e3;
+    background: #fbfbfd;
+}
+.friends-list a {
+    font-weight: 500;
+}
+
+/* --- 导航 GitHub 链接 --- */
+.nav-github {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: #1d1d1f;
+    color: #f5f5f7 !important;
+    border-radius: 50%;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-decoration: none;
+    padding: 0;
+    transition: all 0.25s ease;
+}
+.nav-github:hover {
+    transform: scale(1.1);
+    background: #555;
+}
 #search-input {
     width: 100%;
     padding: 0.85em 1.2em;
