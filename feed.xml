@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>我的博客</title><link>https://huan201.github.io/</link><description>一个用纯 Python 手写的静态博客，记录神经网络、机器学习与编程学习的过程。</description><language>zh-CN</language><atom:link href="https://huan201.github.io/feed.xml" rel="self" type="application/rss+xml" /><item><title>和神经网络的最初相遇：mlp</title><link>https://huan201.github.io/posts/mlp.html</link><guid isPermaLink="true">https://huan201.github.io/posts/mlp.html</guid><pubDate>Mon, 27 Jul 2026 00:00:00 +0000</pubDate><description>简单学习mlp并使用其训练一个mnist数据集识别
+
+引言
+简单了解什么是mlp 他的基本结构是什么
+使用numpy手动实现一个简单的反向传播
+使用pytorch实现一个mnist数据集识别，…</description></item></channel></rss>

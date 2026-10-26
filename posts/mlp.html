@@ -1,42 +1,115 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-appearance="auto">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>和神经网络的最初相遇：mlp</title>
-    <link rel="stylesheet" href="../static/style.css">
-    <link rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>和神经网络的最初相遇：mlp · 我的博客</title>
+<meta name="description" content="简单学习mlp并使用其训练一个mnist数据集识别
+
+引言
+简单了解什么是mlp 他的基本结构是什么
+使用numpy手动实现一个简单的反向传播
+使用pytorch实现一个mnist数据集识别，…">
+<meta name="author" content="huan201">
+<meta name="color-scheme" content="light dark">
+<link rel="canonical" href="https://huan201.github.io/posts/mlp.html">
+<meta name="theme-color" content="#fbfbfd" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<meta property="og:site_name" content="我的博客">
+<meta property="og:type" content="website">
+<meta property="og:title" content="和神经网络的最初相遇：mlp">
+<meta property="og:description" content="简单学习mlp并使用其训练一个mnist数据集识别
+
+引言
+简单了解什么是mlp 他的基本结构是什么
+使用numpy手动实现一个简单的反向传播
+使用pytorch实现一个mnist数据集识别，…">
+<meta property="og:url" content="https://huan201.github.io/posts/mlp.html">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="../static/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../static/favicon.svg">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../feed.xml">
+<link rel="stylesheet" href="../static/css/style.css">
+<script>
+window.MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']],
+    displayMath: [['$$', '$$'], ['\\[', '\\]']]
+  },
+  options: { enableMenu: false }
+};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script>
+  (function () {
+    try {
+      var saved = localStorage.getItem('blog-appearance');
+      var mode = saved || 'auto';
+      if (mode === 'auto') {
+        mode = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      document.documentElement.dataset.theme = mode;
+    } catch (e) {
+      document.documentElement.dataset.theme = 'light';
+    }
+  })();
+</script>
 </head>
-<body>
-    <nav class="nav">
-        <a href="../index.html" class="nav-title">Blog</a>
-        <div class="nav-links">
-            <a href="../index.html">首页</a>
-            <a href="../tags/index.html">标签</a>
-            <a href="../friends/index.html">友链</a>
-            <a href="../search.html">搜索</a>
-            <a href="https://github.com/huan201/blog-maker" target="_blank" class="nav-github" title="GitHub">GH</a>
-        </div>
+<body class="page-post">
+<a class="skip-link" href="#main">跳到主要内容</a>
+<div class="progress" aria-hidden="true"><span class="progress__bar" id="reading-progress"></span></div>
+
+<header class="nav">
+  <div class="nav__inner">
+    <a class="nav__brand" href="../index.html">
+      <span class="nav__mark" aria-hidden="true"></span>
+      <span class="nav__name">我的博客</span>
+    </a>
+    <nav class="nav__links" aria-label="主导航">
+      <a class="nav__link" href="../index.html">首页</a>
+            <a class="nav__link" href="../tags/index.html">标签</a>
+            <a class="nav__link" href="../friends/index.html">友链</a>
+            <a class="nav__link" href="../search.html">搜索</a>
     </nav>
-    <main class="main">
-<h1>和神经网络的最初相遇：mlp</h1>
-<p class="meta">日期: 2026-07-27 | 标签: 神经网络,理论学习,多层感知机,数字识别,机器学习 | 字数: 2801 | <span id="read-count">加载中...</span></p>
-<div class="main-content">
-<h1>简单学习mlp并使用其训练一个mnist数据集识别</h1>
-<h2>1. 引言</h2>
+    <div class="nav__tools">
+      <a class="icon-btn" href="../search.html" title="搜索" aria-label="搜索">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>
+      </a>
+      <button class="icon-btn" id="theme-toggle" type="button" title="切换外观" aria-label="切换外观">
+        <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M5.2 5.2l1.7 1.7M17.1 17.1l1.7 1.7M18.8 5.2l-1.7 1.7M6.9 17.1l-1.7 1.7"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.4A8.6 8.6 0 0 1 9.6 3.5a8.6 8.6 0 1 0 10.9 10.9z"/></svg>
+      </button>
+      <a class="icon-btn nav__github" href="https://github.com/huan201/blog-maker" target="_blank" rel="noopener noreferrer" title="GitHub" aria-label="GitHub">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.2a9.8 9.8 0 0 0-3.1 19.1c.5.1.7-.2.7-.5v-1.9c-2.7.6-3.3-1.2-3.3-1.2-.4-1.1-1.1-1.4-1.1-1.4-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.3 1.1 2.9.8.1-.6.3-1.1.6-1.3-2.2-.2-4.5-1.1-4.5-4.9 0-1.1.4-2 1-2.7-.1-.3-.4-1.3.1-2.7 0 0 .8-.3 2.8 1a9.4 9.4 0 0 1 5 0c1.9-1.3 2.8-1 2.8-1 .5 1.4.2 2.4.1 2.7.6.7 1 1.6 1 2.7 0 3.8-2.3 4.7-4.5 4.9.3.3.7 1 .7 2v2.9c0 .3.2.6.7.5A9.8 9.8 0 0 0 12 2.2z"/></svg>
+      </a>
+    </div>
+  </div>
+</header>
+
+<main class="main" id="main">
+<article class="post">
+  <header class="post__head">
+    <h1 class="post__title">和神经网络的最初相遇：mlp</h1>
+    <div class="post__meta"><time datetime="2026-07-27">2026 年 7 月 27 日</time><span class="dot"></span><span>958 字</span><span class="dot"></span><span>约 2 分钟</span><span class="dot"></span><span data-views data-view-key="mlp" data-view-track="1">—</span></div>
+    <div class="pills"><a class="pill" href="tags/%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C.html">神经网络</a><a class="pill" href="tags/%E7%90%86%E8%AE%BA%E5%AD%A6%E4%B9%A0.html">理论学习</a><a class="pill" href="tags/%E5%A4%9A%E5%B1%82%E6%84%9F%E7%9F%A5%E6%9C%BA.html">多层感知机</a><a class="pill" href="tags/%E6%95%B0%E5%AD%97%E8%AF%86%E5%88%AB.html">数字识别</a><a class="pill" href="tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0.html">机器学习</a></div>
+  </header>
+
+  <div class="post__layout">
+    <div class="prose post__body" id="post-body">
+<h1 id="简单学习mlp并使用其训练一个mnist数据集识别">简单学习mlp并使用其训练一个mnist数据集识别<a class="heading-anchor" href="#简单学习mlp并使用其训练一个mnist数据集识别" aria-label="锚点链接">#</a></h1>
+<h2 id="1.-引言">1. 引言<a class="heading-anchor" href="#1.-引言" aria-label="锚点链接">#</a></h2>
 <ul>
 <li>简单了解什么是mlp  他的基本结构是什么</li>
 <li>使用numpy手动实现一个简单的反向传播</li>
 <li>使用pytorch实现一个mnist数据集识别，并验证不同模型结构下的效果对比</li>
 </ul>
-<h2>2. 简单介绍mlp</h2>
+<h2 id="2.-简单介绍mlp">2. 简单介绍mlp<a class="heading-anchor" href="#2.-简单介绍mlp" aria-label="锚点链接">#</a></h2>
 <ul>
 <li>多层感知机即mlp 在笔者看来是通过一定的数学方法自动训练出一个可以拟合难以用规则明确指出映射关系的工具，是在用计算机的强大算力实现一个黑盒函数，投喂进去的一切数据都会被自动关系到另一个数据</li>
 <li>步骤包括这几步  <br><strong>1.前向传播</strong>：先根据已经知道的数据通过本函数计算出结果 <br><strong>2.损失计算</strong>：按照根据前向传播推断出的数据和标准数据比较，计算出差异值 <br><strong>3.反向传播</strong>：通过求偏导数的方法，来计算如何改变参数从而让本函数求出来的值和标准值差异更小 <br><strong>4.参数更新</strong>：更新参数，让拟合效果更好</li>
 </ul>
-<h2>3.如何手动实现一个简单的反向传播</h2>
-<pre><code class="language-python">def one_hot(y, num_classes=10):
+<h2 id="3.如何手动实现一个简单的反向传播">3.如何手动实现一个简单的反向传播<a class="heading-anchor" href="#3.如何手动实现一个简单的反向传播" aria-label="锚点链接">#</a></h2>
+<div class="code-block"><div class="code-block__bar"><span class="code-block__lang">python</span><button class="code-block__copy" type="button" aria-label="复制代码">复制</button></div><pre><code class="language-python">def one_hot(y, num_classes=10):
     eye = np.eye(num_classes)
     return eye[y]
 
@@ -89,68 +162,82 @@ for epoch in range(epochs):
     losses.append(avg_loss)
     if (epoch+1) % 5 == 0:
         print(f&quot;Epoch {epoch+1:3d}/{epochs}  Loss: {avg_loss:.6f}&quot;)
-</code></pre>
+</code></pre></div>
 <ul>
-<li>这是我们的一部分代码切片其中有几个点需要注意<br>第一我们使用了one-hot本质是将数字标量变成一个十维的张量方便我们之后通过均值方差计算loss<br>第二我们手动计算本模型的梯度<br>$$
+<li>这是我们的一部分代码切片其中有几个点需要注意<br>第一我们使用了one-hot本质是将数字标量变成一个十维的张量方便我们之后通过均值方差计算loss<br>第二我们手动计算本模型的梯度<br><div class="math">$$
+
 N = \text{batch.shape[0]}
-$$</li>
+
+$$</div>
+</li>
 </ul>
-<p>$$
+<div class="math">$$
 h = X W_1, \quad h_{relu} = \max(0, h), \quad \hat{y} = h_{relu} W_2
-$$</p>
-<p>$$
-L = \frac{1}{N} | \hat{y} - Y |_F^2
-$$</p>
-<p>$$
+$$</div>
+<div class="math">$$
+L = \frac{1}{N} \| \hat{y} - Y \|_F^2
+$$</div>
+<div class="math">$$
 \frac{\partial L}{\partial \hat{y}} = \frac{2}{N} (\hat{y} - Y)
-$$</p>
-<p>$$
+$$</div>
+<div class="math">$$
 \frac{\partial L}{\partial W_2} = h_{relu}^{T} \cdot \frac{\partial L}{\partial \hat{y}}
-$$</p>
-<p>$$
+$$</div>
+<div class="math">$$
 \frac{\partial L}{\partial h_{relu}} = \frac{\partial L}{\partial \hat{y}} \cdot W_2^{T}
-$$</p>
-<p>$$
+$$</div>
+<div class="math">$$
 \frac{\partial L}{\partial h} = \frac{\partial L}{\partial h_{relu}} \odot \mathbf{1}_{h \ge 0}
-$$</p>
-<p>$$
+$$</div>
+<div class="math">$$
 \frac{\partial L}{\partial W_1} = X^{T} \cdot \frac{\partial L}{\partial h}
-$$
-<br>其中翻转矩阵可以从具体矩阵的大小匹配上解释</p>
-<h2>4. pytorch实现mnist识别并比较不同结构的模型效果</h2>
+$$</div>
+<p><br>其中翻转矩阵可以从具体矩阵的大小匹配上解释</p>
+<h2 id="4.-pytorch实现mnist识别并比较不同结构的模型效果">4. pytorch实现mnist识别并比较不同结构的模型效果<a class="heading-anchor" href="#4.-pytorch实现mnist识别并比较不同结构的模型效果" aria-label="锚点链接">#</a></h2>
 <ul>
-<li>这里笔者实现两种模型结构<br><strong>512-&gt;256-&gt;128</strong><br><strong>100-&gt;696-&gt;100</strong><br>他们代表了两种结构第一种是逐渐递减第二种是中层突然提升<br><br>笔者这里最开始选择的第二种因为笔者曾经在transfomer的相关文章中看过一个结论 <br><strong>隐藏层层高维度可以获取更多隐藏的信息</strong> <br>但就结果来看似乎并不这样在场外援助学长之后了解到mnist本身隐藏的信息并不大而我们我们这个结构存在这些问题<br>第一结构过于跳跃导致模型十分容易出现问题<br>第二从信息角度从输入层到第一层100再到第二层500本质上存在信息有损压缩导致这个模型丢失了一部分信息<br>从笔者实际的训练结果来看 在这两个模型结构，训练轮次较少，数据量不大的情况下会出现下方这个结果<img src="../static/images/comparison_curves_joint.png" alt="comparison_curves_joint.png" />
+<li>这里笔者实现两种模型结构<br><strong>512-&gt;256-&gt;128</strong><br><strong>100-&gt;696-&gt;100</strong><br>他们代表了两种结构第一种是逐渐递减第二种是中层突然提升<br><br>笔者这里最开始选择的第二种因为笔者曾经在transfomer的相关文章中看过一个结论 <br><strong>隐藏层层高维度可以获取更多隐藏的信息</strong> <br>但就结果来看似乎并不这样在场外援助学长之后了解到mnist本身隐藏的信息并不大而我们我们这个结构存在这些问题<br>第一结构过于跳跃导致模型十分容易出现问题<br>第二从信息角度从输入层到第一层100再到第二层500本质上存在信息有损压缩导致这个模型丢失了一部分信息<br>从笔者实际的训练结果来看 在这两个模型结构，训练轮次较少，数据量不大的情况下会出现下方这个结果<img src="../static/images/comparison_curves_joint.png" alt="comparison_curves_joint.png" loading="lazy" decoding="async" />
 <strong>很明显模型一准度度高于模型二</strong><br>本次训练其他数据在下方这个附件中可以下载查看<a href="../static/attachments/%E9%99%84%E4%BB%B6.zip">附件.zip</a></li>
 </ul>
-<h2>5.感悟</h2>
+<h2 id="5.感悟">5.感悟<a class="heading-anchor" href="#5.感悟" aria-label="锚点链接">#</a></h2>
 <ul>
 <li>刚刚开始学习神经网络对于笔者来说是一件很困难的事情，通过群友和学长的帮助，ai的指导才最终实现入门，这对于笔者来说是一个全新的领域，笔者也会在接下来的至少四年的学习中不断完善本博客
 <br><font color="red"><strong>本文中的部分代码和内容通过ai辅助完成，可能存在质量不高前后不连通的问题</strong></font></li>
 </ul>
 
-</div>
+    </div>
+    <aside class="post__aside">
+<nav class="toc" aria-label="目录"><p class="toc__title">目录</p><ul class="toc__list"><li class="toc__item toc__item--h2"><a href="#1.-引言">1. 引言</a></li><li class="toc__item toc__item--h2"><a href="#2.-简单介绍mlp">2. 简单介绍mlp</a></li><li class="toc__item toc__item--h2"><a href="#3.如何手动实现一个简单的反向传播">3.如何手动实现一个简单的反向传播</a></li><li class="toc__item toc__item--h2"><a href="#4.-pytorch实现mnist识别并比较不同结构的模型效果">4. pytorch实现mnist识别并比较不同结构的模型效果</a></li><li class="toc__item toc__item--h2"><a href="#5.感悟">5.感悟</a></li></ul></nav>
+    </aside>
+  </div>
+
+  
+
+  <section class="comments" id="comments" aria-label="评论"><div class="comments__head"><h2 class="comments__title">评论</h2><p class="comments__hint">评论由 GitHub 托管，刷新或重新部署都不会丢失。</p></div><div class="comments__mount" id="comments-mount"><p class="comments__loading">正在加载评论…</p></div></section>
+</article>
+
+</main>
+
+<footer class="footer">
+  <div class="footer__inner"><p class="footer__line">© 2026 我的博客</p><p class="footer__links"><a href="https://github.com/huan201/blog-maker" target="_blank" rel="noopener noreferrer">GitHub</a> · <a href="../feed.xml">RSS</a> · <a href="../sitemap.xml">Sitemap</a></p></div>
+</footer>
+
+<button class="to-top" id="to-top" type="button" aria-label="回到顶部" title="回到顶部">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V6M6 11l6-6 6 6"/></svg>
+</button>
+
+<script>window.__BLOG__ = {"base":"../","basePath":"/","accent":"#0071e3","appearance":"auto","metrics":{"enabled":true,"provider":"local","namespace":"huan201-blog","site_code":"","endpoint":""},"viewsSeed":{},"comments":{"provider":"utterances","repo":"huan201/blog-maker","repo_id":"","category":"Announcements","category_id":"","mapping":"pathname","issue_term":"pathname","label":"comment","reactions_enabled":true,"input_position":"top","lazy":true}};</script>
+<script src="../static/js/app.js" defer></script>
+<script src="../static/js/metrics.js" defer></script>
+<script src="../static/js/comments.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 <script>
-(function(){
-  var key = 'blog-read-' + location.pathname;
-  var count = (parseInt(localStorage.getItem(key)) || 0) + 1;
-  localStorage.setItem(key, count);
-  document.getElementById('read-count').textContent = '阅读 ' + count + ' 次';
+(function () {
+  if (!window.hljs) return;
+  var blocks = document.querySelectorAll('.code-block pre code');
+  for (var i = 0; i < blocks.length; i += 1) {
+    try { hljs.highlightElement(blocks[i]); } catch (e) {}
+  }
 })();
 </script>
-
-    </main>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-    <script>hljs.highlightAll();</script>
-    <script>
-    MathJax = {
-      tex: {
-        inlineMath: [['$', '$']],
-        displayMath: [['$$', '$$']]
-      }
-    };
-    </script>
-    <script id="MathJax-script" async
-      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
-    </script>
 </body>
 </html>
