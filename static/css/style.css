@@ -398,6 +398,7 @@ video {
 
 .card__title {
   margin: 0 0 0.4rem;
+  overflow-wrap: break-word;
   font-size: 1.16rem;
   font-weight: 600;
   letter-spacing: -0.018em;
@@ -555,6 +556,7 @@ video {
 
 .post__title {
   margin: 0 0 0.75rem;
+  overflow-wrap: break-word;
   font-size: clamp(1.85rem, 4.8vw, 2.6rem);
   font-weight: 700;
   letter-spacing: -0.03em;
@@ -1470,13 +1472,30 @@ mjx-container {
     display: none;
   }
 
+  /* 手机上导航放不下时让它横向滑动，绝不能把「友链」这种入口藏掉 */
   .nav__links {
     gap: 0;
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .nav__links::-webkit-scrollbar {
+    display: none;
   }
 
   .nav__link {
-    padding: 0.35rem 0.55rem;
+    flex: none;
+    padding: 0.35rem 0.5rem;
     font-size: 0.85rem;
+    white-space: nowrap;
+  }
+
+  /* 友链页：窄屏改单列，避免 grid 的最小列宽把页面撑出横向滚动条 */
+  .friends ul {
+    grid-template-columns: 1fr;
   }
 
   .card {
@@ -1504,8 +1523,23 @@ mjx-container {
   }
 }
 
-@media (max-width: 420px) {
-  .nav__links .nav__link:nth-child(3) {
+@media (max-width: 430px) {
+  .nav__inner {
+    gap: 0.35rem;
+    padding: 0 0.7rem;
+  }
+
+  /* 页脚已经有 GitHub 链接，这里让位给导航文字 */
+  .nav__github {
+    display: none;
+  }
+
+  .nav__link {
+    padding: 0.32rem 0.42rem;
+    font-size: 0.82rem;
+  }
+
+  .search__kbd {
     display: none;
   }
 
