@@ -6,13 +6,17 @@
   "index.html",
   "posts.json",
   "posts/mlp.html",
+  "posts/与cifar-10的战斗：初步入门图像识别.html",
   "robots.txt",
   "search.html",
   "sitemap.xml",
   "tags/index.html",
+  "tags/resnet.html",
+  "tags/图像识别.html",
   "tags/多层感知机.html",
   "tags/数字识别.html",
   "tags/机器学习.html",
+  "tags/深度学习.html",
   "tags/理论学习.html",
   "tags/神经网络.html"
 ]

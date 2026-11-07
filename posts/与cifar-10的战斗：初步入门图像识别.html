@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-appearance="auto">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>与cifar-10的战斗：初步入门图像识别 · 我的博客</title>
+<meta name="description" content="通过解决cifar-10数据集识别准确性为主线，学习神经网络 前言 在本篇博客，笔者先是尝试了各种模型对于cifar-10数据集的识别准确率，并在之后着重研究多层resnet，并以其为抓手，…">
+<meta name="author" content="huan201">
+<meta name="color-scheme" content="light dark">
+<link rel="canonical" href="https://huan201.github.io/posts/与cifar-10的战斗：初步入门图像识别.html">
+<meta name="theme-color" content="#fbfbfd" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<meta property="og:site_name" content="我的博客">
+<meta property="og:type" content="website">
+<meta property="og:title" content="与cifar-10的战斗：初步入门图像识别">
+<meta property="og:description" content="通过解决cifar-10数据集识别准确性为主线，学习神经网络 前言 在本篇博客，笔者先是尝试了各种模型对于cifar-10数据集的识别准确率，并在之后着重研究多层resnet，并以其为抓手，…">
+<meta property="og:url" content="https://huan201.github.io/posts/与cifar-10的战斗：初步入门图像识别.html">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="../static/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../static/favicon.svg">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../feed.xml">
+<link rel="stylesheet" href="../static/css/style.css">
+<script>
+window.MathJax = {
+  tex: {
+    inlineMath: [['\\(', '\\)']],
+    displayMath: [['$$', '$$'], ['\\[', '\\]']]
+  },
+  options: { enableMenu: false }
+};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script>
+  (function () {
+    try {
+      var saved = localStorage.getItem('blog-appearance');
+      var mode = saved || 'auto';
+      if (mode === 'auto') {
+        mode = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      document.documentElement.dataset.theme = mode;
+    } catch (e) {
+      document.documentElement.dataset.theme = 'light';
+    }
+  })();
+</script>
+</head>
+<body class="page-post">
+<a class="skip-link" href="#main">跳到主要内容</a>
+<div class="progress" aria-hidden="true"><span class="progress__bar" id="reading-progress"></span></div>
+
+<header class="nav">
+  <div class="nav__inner">
+    <a class="nav__brand" href="../index.html">
+      <span class="nav__mark" aria-hidden="true"></span>
+      <span class="nav__name">我的博客</span>
+    </a>
+    <nav class="nav__links" aria-label="主导航">
+      <a class="nav__link" href="../index.html">首页</a>
+            <a class="nav__link" href="../tags/index.html">标签</a>
+            <a class="nav__link" href="../friends/index.html">友链</a>
+            <a class="nav__link" href="../search.html">搜索</a>
+    </nav>
+    <div class="nav__tools">
+      <a class="icon-btn" href="../search.html" title="搜索" aria-label="搜索">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>
+      </a>
+      <button class="icon-btn" id="theme-toggle" type="button" title="切换外观" aria-label="切换外观">
+        <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M5.2 5.2l1.7 1.7M17.1 17.1l1.7 1.7M18.8 5.2l-1.7 1.7M6.9 17.1l-1.7 1.7"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.4A8.6 8.6 0 0 1 9.6 3.5a8.6 8.6 0 1 0 10.9 10.9z"/></svg>
+      </button>
+      <a class="icon-btn nav__github" href="https://github.com/huan201/blog-maker" target="_blank" rel="noopener noreferrer" title="GitHub" aria-label="GitHub">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.2a9.8 9.8 0 0 0-3.1 19.1c.5.1.7-.2.7-.5v-1.9c-2.7.6-3.3-1.2-3.3-1.2-.4-1.1-1.1-1.4-1.1-1.4-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.3 1.1 2.9.8.1-.6.3-1.1.6-1.3-2.2-.2-4.5-1.1-4.5-4.9 0-1.1.4-2 1-2.7-.1-.3-.4-1.3.1-2.7 0 0 .8-.3 2.8 1a9.4 9.4 0 0 1 5 0c1.9-1.3 2.8-1 2.8-1 .5 1.4.2 2.4.1 2.7.6.7 1 1.6 1 2.7 0 3.8-2.3 4.7-4.5 4.9.3.3.7 1 .7 2v2.9c0 .3.2.6.7.5A9.8 9.8 0 0 0 12 2.2z"/></svg>
+      </a>
+    </div>
+  </div>
+</header>
+
+<main class="main" id="main">
+<article class="post">
+  <header class="post__head">
+    <h1 class="post__title">与cifar-10的战斗：初步入门图像识别</h1>
+    <div class="post__meta"><time datetime="2026-11-02">2026 年 11 月 2 日</time><span class="dot"></span><span>6957 字</span><span class="dot"></span><span>约 17 分钟</span><span class="dot"></span><span data-views data-view-key="与cifar-10的战斗：初步入门图像识别" data-view-track="1">—</span></div>
+    <div class="pills"><a class="pill" href="tags/%E5%9B%BE%E5%83%8F%E8%AF%86%E5%88%AB.html">图像识别</a><a class="pill" href="tags/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0.html">深度学习</a><a class="pill" href="tags/%E7%90%86%E8%AE%BA%E5%AD%A6%E4%B9%A0.html">理论学习</a><a class="pill" href="tags/resnet.html">resnet</a><a class="pill" href="tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0.html">机器学习</a></div>
+  </header>
+
+  <div class="post__layout">
+    <div class="prose post__body" id="post-body">
+<h1 id="通过解决cifar-10数据集识别准确性为主线,学习神经网络">通过解决cifar-10数据集识别准确性为主线，学习神经网络<a class="heading-anchor" href="#通过解决cifar-10数据集识别准确性为主线,学习神经网络" aria-label="锚点链接">#</a></h1>
+<h2 id="前言">前言<a class="heading-anchor" href="#前言" aria-label="锚点链接">#</a></h2>
+<p>在本篇博客，笔者先是尝试了各种模型对于cifar-10数据集的识别准确率，并在之后着重研究多层resnet，并以其为抓手，深入学习其背后的工程理论和数学原理<br><font color="red">本博客中部分内容由<strong>AI</strong>辅助完成</font>。</p>
+<h2 id="初入-试探性的使用多个模型检验效果">初入：试探性的使用多个模型检验效果<a class="heading-anchor" href="#初入-试探性的使用多个模型检验效果" aria-label="锚点链接">#</a></h2>
+<p>在最开始 笔者并不知晓什么模型适合来作为本项目的深入研究模型 笔者恰好听过cnn resent vit等等词语 不如就用他们全部测试一遍 在这里笔者定义了如下七个模型</p>
+<div class="table-scroll"><table>
+<thead>
+<tr>
+  <th></th>
+  <th>网络结构 / 参数量</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><strong>1. MLP</strong></td>
+  <td>输入 (B,3,32,32) → Flatten → (B,3072) → Linear 3072→512 + ReLU → Linear 512→256 + ReLU → Linear 256→128 + ReLU → Linear 128→10；无卷积、无池化、无归一化；参数量 1,738,890</td>
+</tr>
+<tr>
+  <td><strong>2. 单层 CNN</strong></td>
+  <td>输入 (B,3,32,32) → Conv2d(3→64, 3×3, s1, p1) + ReLU → (B,64,32,32) → MaxPool2d(2) → (B,64,16,16) → Flatten → (B,16384) → Linear 16384→10；卷积 bias=True、无 BN；参数量 165,642（其中卷积层 1,792）</td>
+</tr>
+<tr>
+  <td><strong>3. 多层 CNN</strong></td>
+  <td>stage1: Conv(3→32)+ReLU, Conv(32→32)+ReLU @32×32 → MaxPool → (B,32,16,16)；stage2: Conv(32→64)+ReLU, Conv(64→64)+ReLU @16×16 → MaxPool → (B,64,8,8)；stage3: Conv(64→128)+ReLU, Conv(128→128)+ReLU @8×8 → MaxPool → (B,128,4,4) → AdaptiveAvgPool2d(1) → (B,128) → Linear 128→10；共 6 个 3×3 卷积，无 BN、无残差；参数量 288,298</td>
+</tr>
+<tr>
+  <td><strong>4. ResNet</strong></td>
+  <td>stage 划分、通道、池化位置、GAP、FC 与模型 3 相同，把每对卷积封装为残差块：out = ReLU(conv2(ReLU(conv1(x))) + shortcut(x))，shortcut 在形状一致时为 Identity、通道或分辨率变化时为 1×1 Conv；链路为 ResidualBlock(3→32) → MaxPool → ResidualBlock(32→64) → MaxPool → ResidualBlock(64→128) → MaxPool → (B,128,4,4) → GAP → Linear 128→10；无 BN；参数量 298,858（多出的 10,560 为 3 个 shortcut 投影卷积）</td>
+</tr>
+<tr>
+  <td><strong>5. CNN + Attention 头</strong></td>
+  <td>backbone 与模型 3 相同：stage1/2/3 → (B,128,4,4) → flatten(2).transpose(1,2) → (B,16,128) → 1 个 Pre-LN Transformer 块（x = x + MHSA(LN(x))；x = x + MLP(LN(x))，dim=128，heads=4，MLP hidden=256，GELU）→ (B,16,128) → mean(dim=1) → (B,128) → Linear 128→10；参数量 420,778</td>
+</tr>
+<tr>
+  <td><strong>6. 单层 CNN + Attention 头</strong></td>
+  <td>backbone 与模型 2 相同：Conv2d(3→64, 3×3)+ReLU → MaxPool2d(2) → (B,64,16,16) → flatten(2).transpose(1,2) → (B,256,64) → 1 个 Pre-LN Transformer 块（dim=64，heads=4，MLP hidden=128）→ (B,256,64) → mean(dim=1) → (B,64) → Linear 64→10；参数量 35,914</td>
+</tr>
+<tr>
+  <td><strong>7. ViT</strong></td>
+  <td>PatchEmbed: Conv2d(3→128, k=4, s=4) → (B,128,8,8) → flatten(2).transpose(1,2) → (B,64,128)；拼接 [CLS] → (B,65,128)，加可学习位置编码（trunc_normal, std=0.02）；6 个 Pre-LN Transformer 块（dim=128，heads=4，MLP hidden=512）→ (B,65,128) → LayerNorm → 取 CLS → Linear 128→10；除 patch 投影外无卷积；参数量 1,205,898</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<p>经过大概100epochs的训练 我们可以简单的观察一下实验结果<img src="../static/images/cmp_01_val_acc_overlay.png" alt="七个模型的acc效果" loading="lazy" decoding="async" />
+可以简单看到mlp在这这种复杂的的任务中已经难以招架，而resnet，多层cnn和多层cnn+attntion则快接近百分之八十 暂且可以认为 在这个数据大小和模型层数下 多层cnn可以极大的提高cifar-10数据集的识别率 这里的vit和attention将在之后的任务中深入研究 今天笔者想要了解一下图像领域的经典架构--<strong>cnn和resnet</strong></p>
+<h2 id="什么是卷积">什么是卷积<a class="heading-anchor" href="#什么是卷积" aria-label="锚点链接">#</a></h2>
+<p>cnn即卷积神经网络 他的概念首先来自一个数学概率 即卷积函数</p>
+<div class="math">$$
+(f * g)(t) = \int_{-\infty}^{+\infty} f(\tau)\,g(t-\tau)\,\mathrm{d}\tau
+$$</div>
+<ul>
+<li><strong>翻转</strong>：<span class="math">\(g(\tau) \mapsto g(-\tau)\)</span></li>
+<li><strong>平移</strong>：<span class="math">\(g(-\tau) \mapsto g(t-\tau)\)</span>，中心在 <span class="math">\(\tau = t\)</span></li>
+<li><strong>相乘</strong>：<span class="math">\(h_t(\tau) = f(\tau)\,g(t-\tau)\)</span>，只保留重叠区</li>
+<li><strong>积分</strong>：<span class="math">\((f*g)(t) = \int h_t(\tau)\,\mathrm{d}\tau\)</span>，即重叠加权面积</li>
+</ul>
+<p>几何本质：<strong>t</strong> 滑动时，<strong>(f*g)(t)</strong> 记录的是 <strong>f</strong> 与&quot;翻转后滑动窗口 <strong>g</strong>&quot;的<strong>重叠面积</strong>。
+<br>其具体的更细致的理解可以去观看<a href="https://www.bilibili.com/video/BV1Vd4y1e7pj/?share_source=copy_web&amp;vd_source=70afcddccc3690f800454077c1097bff" target="_blank" rel="noopener noreferrer">3Blue1Brown的卷积可视化</a>
+<br>在我们图像处理中的卷积则一般运用二维离散卷积</p>
+<div class="math">$$
+Y[o,i,j] = b[o] + \sum_{c=0}^{C_{\text{in}}-1}\sum_{m=0}^{K_h-1}\sum_{n=0}^{K_w-1}
+X[c,\; i\,s_h + m\,d_h - p_h,\; j\,s_w + n\,d_w - p_w]\; W[o,c,m,n]
+$$</div>
+<p>笔者来看 这个公式的直观理解为一个长宽为H和W的矩阵在图像矩阵上不断移动 每移动一次 就求一次点积放到一个新的矩阵上 最后产生一个新的矩阵。
+<br>这个矩阵也就是我们所说的卷积核，这个函数也就是我们卷积神经网络中的卷积层的核心，此外卷积神经网络还要一个池化层 对矩阵进行分割 从而降维 减少我们需要的计算量 二者组成我们的卷积神经网络。
+<br>这个网络设计来自现代图像处理的开山鼻祖之一<strong>AlexNet</strong>
+<br> 那么为什么这个结构如此适合图像处理任务呢 按照之后的研究 通过逐层分析 每一层卷积核都对图像的某一模式进行特化识别 例如 某一层卷积可以对边缘特化 将边缘强调提取 某一层可以对人脸特化 将五官进行特化提取（<strong>此处仅为个人方便理解，按照之后的研究 具体的提取可以不像笔者的描述如此具体 而是算法自主选择的特征</strong>）</p>
+<h2 id="反向传播的实现">反向传播的实现<a class="heading-anchor" href="#反向传播的实现" aria-label="锚点链接">#</a></h2>
+<h3 id="新的损失函数">新的损失函数<a class="heading-anchor" href="#新的损失函数" aria-label="锚点链接">#</a></h3>
+<p>笔者 在这里又回到第一章探讨的的问题 在上一章中我们实验<strong>MSE</strong>（均方误差）来实现模型效果的评估，在这一章中我们将使用<strong>交叉熵损失</strong>进行模型评估</p>
+<div class="math">$$
+H(p,q)=-\sum_x p(x)\log q(x)
+$$</div>
+<p>交叉熵损失来源自信息论，对于本人而言，我更喜欢将他的一个拆解式子
+<br></p>
+<div class="math">$$
+H(p)=-\sum_x p(x)\log p(x)
+$$</div>
+<div class="math">$$
+\mathrm{KL}(p\|q)=\sum_x p(x)\log\frac{p(x)}{q(x)}
+$$</div>
+<div class="math">$$
+H(p,q)=H(p)+\mathrm{KL}(p\|q)
+$$</div>
+<p>这里的 <strong>H(p)</strong> 也就是所谓的香农熵，一件事情的发生概率发生概率越小，在信息论中携带的信息越大 即 所谓的惊喜程度越大，而 <strong>KL(p|q)</strong> 则是所谓的KL散度是用来权衡两个概率分布的差异，这里可以简单分析出KL散度的两种模式运用 即<strong>正向 KL</strong>和<strong>反向 KL</strong>
+<br> <strong>正向KL</strong></p>
+<div class="math">$$
+\mathrm{KL}(p\|q)=\sum_x p(x)\log\frac{p(x)}{q(x)}
+=\mathbb{E}_{x\sim p}\left[\log\frac{p(x)}{q(x)}\right]
+$$</div>
+<p>他是一种 <strong>mean-seeking</strong> 着重去覆盖目标概率分布的所有模式，避免漏掉某一质量，让 q 尽量覆盖 p 的所有高概率区域。
+<br>
+<br><strong>反向KL</strong></p>
+<div class="math">$$
+KL(q||p)=\sum_x q(x)\log\frac{q(x)}{p(x)}
+=E_q[\log\frac{q(x)}{p(x)}]
+$$</div>
+<p>他是一种 <strong>mode-seeking</strong> 他着重惩罚p覆盖到q不存在的地方这一行为，避免多选，让 q 只待在 p 的高概率区域里。
+<br>
+这两个模式，代表了两种任务，正向一般用于学习真实分布、最大似然、分类、语言模型、密度估计等等需要全面考虑的事情，
+反向则用于变分推断、VAE、策略约束等只要一个模式的近似的任务。
+<br>
+在梯度传递的过程中，因为香农熵是一个固定参数，不需要考虑，所以交叉熵的梯度传递结果和KL散度一致，此外 可以在数学上简单证明。
+<br> <strong>最大似然估计等于最小交叉熵损失</strong></p>
+<div class="math">$$
+\theta^*
+= \min_\theta H(p_{data},q_\theta)
+= \min_\theta -\frac{1}{N}\sum_{i=1}^{N}\log q_\theta(y_i|x_i)
+$$</div>
+<p>最大似然估计的最大值，也就是统计学意义上的最优曲线，所以交叉熵损失达到最小值，也就是拟合曲线最优的适合。
+<br> 在实际使用中 我们一般配合<strong>softmax归一化</strong>一起使用</p>
+<div class="math">$$
+p_i=\frac{e^{z_i}}{\sum_j e^{z_j}}, \quad i=1,\dots,C
+$$</div>
+<p>softmax可以将所有的输入住归一化即加起来结果为，并保证所有的值都是正数。
+<br>使用交叉熵损失相比MSE，他的梯度性质更好，避免输出层饱和在softmax边界位置可以更快下降，防止下降太慢或者梯度消失。</p>
+<h3 id="卷积的反向传播">卷积的反向传播<a class="heading-anchor" href="#卷积的反向传播" aria-label="锚点链接">#</a></h3>
+<ol>
+<li>卷积反向传播推导</li>
+</ol>
+<p>设损失为 <span class="math">\(L\)</span>，卷积输出为 <span class="math">\(Y\)</span>，上游传回来的梯度是：</p>
+<div class="math">$$
+G=\frac{\partial L}{\partial Y}
+$$</div>
+<p>我们要求：</p>
+<div class="math">$$
+\frac{\partial L}{\partial W},\qquad
+\frac{\partial L}{\partial X},\qquad
+\frac{\partial L}{\partial b}
+$$</div>
+<p>为了简单，先看单通道、stride=1、无 padding 的二维互相关：</p>
+<div class="math">$$
+Y_{i,j}=\sum_{u,v}X_{i+u,j+v}W_{u,v}+b
+$$</div>
+<p>1.1 对权重 <span class="math">\(W\)</span> 求导</p>
+<p>由链式法则：</p>
+<div class="math">$$
+\frac{\partial L}{\partial W_{u,v}}
+=
+\sum_{i,j}
+\frac{\partial L}{\partial Y_{i,j}}
+\frac{\partial Y_{i,j}}{\partial W_{u,v}}
+$$</div>
+<p>而：</p>
+<div class="math">$$
+\frac{\partial Y_{i,j}}{\partial W_{u,v}}=X_{i+u,j+v}
+$$</div>
+<p>所以：</p>
+<div class="math">$$
+\frac{\partial L}{\partial W_{u,v}}
+=
+\sum_{i,j}G_{i,j}X_{i+u,j+v}
+$$</div>
+<p>直观理解：权重 <span class="math">\(W_{u,v}\)</span> 在前向时参与了所有输出位置 <span class="math">\((i,j)\)</span> 的计算，所以反向要把所有输出位置的梯度乘上对应输入像素，再加起来。</p>
+<p>1.2 对输入 <span class="math">\(X\)</span> 求导</p>
+<div class="math">$$
+\frac{\partial L}{\partial X_{p,q}}
+=
+\sum_{i,j,u,v}
+G_{i,j}
+\frac{\partial Y_{i,j}}{\partial X_{p,q}}
+$$</div>
+<p>只有当：</p>
+<div class="math">$$
+p=i+u,\qquad q=j+v
+$$</div>
+<p>时，<span class="math">\(X_{p,q}\)</span> 才参与 <span class="math">\(Y_{i,j}\)</span>，此时：</p>
+<div class="math">$$
+\frac{\partial Y_{i,j}}{\partial X_{p,q}}=W_{u,v}
+$$</div>
+<p>因此：</p>
+<div class="math">$$
+\frac{\partial L}{\partial X_{p,q}}
+=
+\sum_{u,v}G_{p-u,q-v}W_{u,v}
+$$</div>
+<p>这表示：把每个输出位置的梯度 <span class="math">\(G_{i,j}\)</span> 乘以卷积核 <span class="math">\(W\)</span>，再加回它前向时覆盖的输入区域。重叠位置要累加。这就是“转置卷积”或“full convolution”的来源。</p>
+<p>1.3 对偏置 <span class="math">\(b\)</span> 求导</p>
+<div class="math">$$
+Y_{i,j}=\cdots+b
+$$</div>
+<p>所以：</p>
+<div class="math">$$
+\frac{\partial L}{\partial b}
+=
+\sum_{i,j}G_{i,j}
+$$</div>
+<p>多输出通道时，每个输出通道 <span class="math">\(o\)</span> 的偏置梯度为：</p>
+<div class="math">$$
+\frac{\partial L}{\partial b_o}
+=
+\sum_{n,i,j}G_{n,o,i,j}
+$$</div>
+<p>1.4 多通道公式</p>
+<p>前向：</p>
+<div class="math">$$
+Y_{n,o,i,j}
+=
+b_o
++
+\sum_{c,u,v}
+X_{n,c,iS+u-P,jS+v-P}
+W_{o,c,u,v}
+$$</div>
+<p>反向：</p>
+<div class="math">$$
+\frac{\partial L}{\partial W_{o,c,u,v}}
+=
+\sum_{n,i,j}
+G_{n,o,i,j}
+X_{n,c,iS+u-P,jS+v-P}
+$$</div>
+<div class="math">$$
+\frac{\partial L}{\partial X_{n,c,h,w}}
+=
+\sum_{o,u,v}
+G_{n,o,i,j}
+W_{o,c,u,v}
+$$</div>
+<p>其中：</p>
+<div class="math">$$
+h=iS+u-P,\qquad w=jS+v-P
+$$</div>
+<h2 id="朴素卷积的简单实验">朴素卷积的简单实验<a class="heading-anchor" href="#朴素卷积的简单实验" aria-label="锚点链接">#</a></h2>
+<p>在之前的实验图中我们已经验证了cnn相比mlp在cifar-10识别上更高的准度
+既然已经选好了模型结构，接下来就是具体的开始测试效果。
+<br>我们通过卷积层+池化层+relu的结构作为一个基本的代码块 每一个代码块作为一层 实验结果如下 <img src="../static/images/plain_acc_vs_depth.png" alt="plain_acc_vs_depth.png" loading="lazy" decoding="async" />
+首先我们可以简单观察到，在大约16层的之前 增加层数确实可以增大测试的准确率，这其中的原因是因为单层的卷积识别的视野有限，只能感知局部，而堆叠卷积层则可以扩大视野，下一次卷积可以在上一层卷积的基础上进一步抽象识别，在这里，可以把多层卷积视作一个大的卷积层，大概计算公式如下</p>
+<div class="math">$$
+RF_n=1+\sum_{i=1}^{n}(K_i^{\text{eff}}-1)\prod_{j=1}^{i-1}S_j
+$$</div>
+<p>按照这个公式 将我们实验中中的16个3x3的卷积带入 大概可以抽象为一个33x33的大卷积，和我们cifar-10要求的32x32近似一致，模型已经可以完全读入图像了，所以之后再增加模型大小也不会增大识别大小（<strong>这一结论在之后的resnet中也基本相似，只存在因为多层卷积的导致的更强非线性拟合能力等导致的微小差异</strong>），但我们也可以清晰的看到，在模型大约21层之后，随着模型层数的增加，效果反而减少，这就是我们下一小节需要探讨的内容———<strong>退化问题</strong></p>
+<h2 id="深度学习的可能性-resnet">深度学习的可能性：resnet<a class="heading-anchor" href="#深度学习的可能性-resnet" aria-label="锚点链接">#</a></h2>
+<p>在模型的层数增加之后，按理来说，至少应该保持之前的最优效果才对（只要你将之后的权重进行设置，保持输入和输出完全不变），但实际来看 并非如此 根据研究可以知道，增加模型层数之后，模型梯度空间会更加碎裂，模型难以找到光滑的曲线下降，让训练极为困难 具体的细节可以参考这个视频<a href="https://www.bilibili.com/video/BV1wwtz6pERs/?share_source=copy_web&amp;vd_source=70afcddccc3690f800454077c1097bff" target="_blank" rel="noopener noreferrer">本世纪被引用最多的论文是一篇出色的巧妙之作</a>
+<br>换而言之，这也就是所谓的难以学习恒等映射，所以残差链接的出现，让这个问题能够被解决 。
+<br>在resnet中 作者团队设计了一个极为巧妙的思路，在模型的中间增加跳跃连接形成这样一个结构</p>
+<div class="math">$$
+H(x) = F(x) + x
+$$</div>
+<p>这个结构成为现代深度学习无法绕开的重要设计，关于他为何有效的研究有很多，从各个角度都有解析，笔者无法一一罗列，笔者在这里讲述一个自己的理解，这一个设计让梯度下降的判定依据更加简单，从对整体的残差到最小值变成了只需要每一个残差快中的 <strong>f（x）</strong> 趋于某个值就可以实现，把一个整体的过程分为了小块，局部最优来保证全局最优（这里的理解并不准确，只作为初步学习的结论，将在之后的学习中完善）。
+<br>在论文中何凯明团队给出了这样一个式子</p>
+<div class="math">$$
+\frac{\partial L}{\partial h_l}
+=
+\frac{\partial L}{\partial h_L}
+\prod_{i=l}^{L-1}
+\left(
+I+\frac{\partial F}{\partial h_i}
+\right)
+=
+\frac{\partial L}{\partial h_L}
+\left[
+I
++
+\sum_{\substack{i\\ \text{走 1 个块}}}
+\frac{\partial F}{\partial h_i}
++
+\sum_{\substack{i&lt;j\\ \text{走 2 个块}}}
+\frac{\partial F}{\partial h_i}
+\frac{\partial F}{\partial h_j}
++
+\cdots
+\right]
+$$</div>
+<p>它指出，在传递的过程中建立了一个快速通道，也就是所谓的残差流，这个式子颠覆了早期卷积神经网络的一定理解，把多层神经网络 每一次都在学习识别更高抽象特征的结论颠覆了。
+<br>在本论文中面对跳跃链接的两端存在维度和大小不统一的问题，何凯明的团队也提出了三种方案分别是零填充捷径，投影捷径，全投影捷径。</p>
+<hr />
+<h3 id="零填充捷径">零填充捷径<a class="heading-anchor" href="#零填充捷径" aria-label="锚点链接">#</a></h3>
+<p>这个方法通过直接将缺失的维度填充为全为0的矩阵，并直接采样改变大小实现匹配，但其引入大量无意义的数据，增加了无意义的计算量。</p>
+<h3 id="(全)投影捷径">（全）投影捷径<a class="heading-anchor" href="#(全)投影捷径" aria-label="锚点链接">#</a></h3>
+<p>这两种方式，则是使用一个1x1 stride变化的卷积来实现大小和维度的匹配，但不同的是全投影是对每一个输入都进行一次卷积，而投影捷径只在有变化的地方进行一次卷积，相比来说，他需要的计算量更少，并且其内容更加有意义，还具有一定的学习性质，所以在论文中被主要使用。</p>
+<hr />
+<p><strong>那么解决了退化问题我们的任务就完成了吗？</strong>
+<br>不妨来看看我们的实验数据。<img src="../static/images/resnet_acc_vs_depth.png" alt="resnet_acc_vs_depth.png" loading="lazy" decoding="async" />
+可以清楚的看到在层数到达51之后模型就不收敛了，我们去查看日志可以发现NaN/Inf的loss导致模型直接停止工作，这里也就是我们下一小节需要解决的问题——<strong>梯度爆炸/梯度消失</strong></p>
+<h2 id="归一化-对多层网络连乘的对抗">归一化：对多层网络连乘的对抗<a class="heading-anchor" href="#归一化-对多层网络连乘的对抗" aria-label="锚点链接">#</a></h2>
+<p>我们先将一个试验成果放在这里。
+<img src="../static/images/fig01_accuracy_vs_depth.png" alt="fig01_accuracy_vs_depth.png" loading="lazy" decoding="async" />
+接下来我们将围绕这个图进行探讨和研究。</p>
+<h3 id="雅可比矩阵">雅可比矩阵<a class="heading-anchor" href="#雅可比矩阵" aria-label="锚点链接">#</a></h3>
+<p>在梯度传递的过程中，我们一般通过雅可比矩阵来作为梯度 那么什么是雅可比矩阵呢
+设 <span class="math">\(f:\mathbb{R}^n\to\mathbb{R}^m\)</span>，
+<span class="math">\(f(x)=(f_1(x),\dots,f_m(x))^\top\)</span>。
+则 <span class="math">\(f\)</span> 的雅可比矩阵定义为</p>
+<div class="math">$$
+J_f(x)
+=
+\begin{bmatrix}
+\dfrac{\partial f_1}{\partial x_1} &amp; \cdots &amp; \dfrac{\partial f_1}{\partial x_n}\\
+\vdots &amp; \ddots &amp; \vdots\\
+\dfrac{\partial f_m}{\partial x_1} &amp; \cdots &amp; \dfrac{\partial f_m}{\partial x_n}
+\end{bmatrix}
+\in\mathbb{R}^{m\times n},
+$$</div>
+<p>即</p>
+<div class="math">$$
+(J_f(x))_{ij}
+=
+\frac{\partial f_i}{\partial x_j}.
+$$</div>
+<p>它满足一阶线性近似</p>
+<div class="math">$$
+f(x+h)=f(x)+J_f(x)h+o(\|h\|).
+$$</div>
+<p>他本质是一个所有一阶偏导组成的矩阵，把其放到一维</p>
+<div class="math">$$
+J_f(x)=\begin{bmatrix}f'(x)\end{bmatrix}\in\mathbb{R}^{1\times 1}.
+$$</div>
+<p>也就是我们俗称的链式法则基本表达式</p>
+<div class="math">$$
+\frac{dy}{dx}=\frac{dy}{du}\frac{du}{dx}.
+$$</div>
+<p>他可以在局部进行逼近，同样可以用来衡量向量空间局部坐标系变化，因为他需要输入上次传来的梯度，雅可比矩阵连乘天然适合作为梯度传递的数学表示，在数学上 多层梯度传递的公式是这样的</p>
+<div class="math">$$
+\boxed{
+\frac{\partial L}{\partial x_0}
+=
+\left(J_NJ_{N-1}\cdots J_1\right)^\top
+\frac{\partial L}{\partial x_N}.
+}
+$$</div>
+<h3 id="为什么会梯度爆炸">为什么会梯度爆炸<a class="heading-anchor" href="#为什么会梯度爆炸" aria-label="锚点链接">#</a></h3>
+<p>既然已经知道了多层梯度的表示方式 我们不妨看下面这个式子</p>
+<div class="math">$$
+\left\|
+\frac{\partial L}{\partial h_0}
+\right\|
+\le
+\left(
+\prod_{l=1}^{L}
+\|W_l\|\,\|D_l\|
+\right)
+\left\|
+\frac{\partial L}{\partial h_L}
+\right\|.
+$$</div>
+<div class="math">$$
+\rho_l=\|W_l\|\,\|D_l\|.
+$$</div>
+<p>不难发现若 <span class="math">\(\rho&gt;1\)</span>：<span class="math">\(\rho^L\)</span> 指数爆炸
+<br>若 <span class="math">\(\rho&lt;1\)</span>：<span class="math">\(\rho^L\)</span> 指数趋近于 <span class="math">\(0\)</span>，梯度消失</p>
+<div class="math">$$
+\boxed{
+\frac{\partial L}{\partial h_0}
+=
+\left(
+\prod_{l=L-1}^{0}
+\left(I+J_{F_l}\right)
+\right)^\top
+\frac{\partial L}{\partial h_L}.
+}
+$$</div>
+<p>这是resnet中的梯度推导 可以看到因为存在一条直通通道，他相比朴素神经网络更容易导致梯度爆炸 我们也可以通过查看训练过程中的rms来看到<img src="../static/images/depth_20.png" alt="depth_20.png" loading="lazy" decoding="async" />
+resnet相比朴素神经网络在深层网络中rms增长极为迅速，就容易导致所谓的梯度爆炸（只是容易但并不绝对），此外我们也可以去查看pytorch的初始化方式</p>
+<div class="code-block"><div class="code-block__bar"><span class="code-block__lang">python</span><button class="code-block__copy" type="button" aria-label="复制代码">复制</button></div><pre><code class="language-python">init.kaiming_uniform_(self.weight, a=math.sqrt(5))
+bound = 1 / math.sqrt(fan_in)
+init.uniform_(self.bias, -bound, bound)
+</code></pre></div>
+<h3 id="归一化的神力">归一化的神力<a class="heading-anchor" href="#归一化的神力" aria-label="锚点链接">#</a></h3>
+<div class="math">$$
+\mu_B = \frac{1}{m}\sum_{i=1}^{m}x_i
+$$</div>
+<div class="math">$$
+\sigma_B^2 = \frac{1}{m}\sum_{i=1}^{m}(x_i-\mu_B)^2
+$$</div>
+<div class="math">$$
+\hat{x}_i = \frac{x_i-\mu_B}{\sqrt{\sigma_B^2+\epsilon}}
+$$</div>
+<div class="math">$$
+y_i = \gamma \hat{x}_i + \beta
+$$</div>
+<p>在我们这里我们一般使用bn对数据归一化，在bn中，我们先取得一个batch size大小的随机数据组，通过对数据组中某一通道，进行全面采样，再将其统一到一个更加适合适合的数值从而方式数值过于极端，在上面的图表也能看出，通过归一化之后的数据更加稳定，在一个定值的附近徘徊。</p>
+<h2 id="其他补充">其他补充<a class="heading-anchor" href="#其他补充" aria-label="锚点链接">#</a></h2>
+<p>此外本次实验也测试了不同数据处理的好处，例如裁剪，压缩等等 结构如下<img src="../static/images/fig07_preprocess_bars.png" alt="fig07_preprocess_bars.png" loading="lazy" decoding="async" />
+可以清楚的看到不同数据处理方式对结果的巨大影响，在训练过程中预训练也是极为重要的。</p>
+<h2 id="感悟">感悟<a class="heading-anchor" href="#感悟" aria-label="锚点链接">#</a></h2>
+<p>经过本次学习，笔者深刻认识到了数学在机器学习的重要性，作为一个高数都没有学完就直接跑过来试图继续理论学习的人来说，每一个知识点都是陌生的，哪怕通过各种方式理解了浅层，也没有办法对其很好的运用，并从各个角度进行深入理解，在很多方面笔者也有想深入的心思，但因为能力不够而止步于此，接下来的学习中笔者可能会先回归基础，把数据工程等等内容进行系统学习，并把自己的数理基础进行夯实。</p>
+
+    </div>
+    <aside class="post__aside">
+<nav class="toc" aria-label="目录"><p class="toc__title">目录</p><ul class="toc__list"><li class="toc__item toc__item--h2"><a href="#前言">前言</a></li><li class="toc__item toc__item--h2"><a href="#初入-试探性的使用多个模型检验效果">初入：试探性的使用多个模型检验效果</a></li><li class="toc__item toc__item--h2"><a href="#什么是卷积">什么是卷积</a></li><li class="toc__item toc__item--h2"><a href="#反向传播的实现">反向传播的实现</a></li><li class="toc__item toc__item--h3"><a href="#新的损失函数">新的损失函数</a></li><li class="toc__item toc__item--h3"><a href="#卷积的反向传播">卷积的反向传播</a></li><li class="toc__item toc__item--h2"><a href="#朴素卷积的简单实验">朴素卷积的简单实验</a></li><li class="toc__item toc__item--h2"><a href="#深度学习的可能性-resnet">深度学习的可能性：resnet</a></li><li class="toc__item toc__item--h3"><a href="#零填充捷径">零填充捷径</a></li><li class="toc__item toc__item--h3"><a href="#(全)投影捷径">（全）投影捷径</a></li><li class="toc__item toc__item--h2"><a href="#归一化-对多层网络连乘的对抗">归一化：对多层网络连乘的对抗</a></li><li class="toc__item toc__item--h3"><a href="#雅可比矩阵">雅可比矩阵</a></li><li class="toc__item toc__item--h3"><a href="#为什么会梯度爆炸">为什么会梯度爆炸</a></li><li class="toc__item toc__item--h3"><a href="#归一化的神力">归一化的神力</a></li><li class="toc__item toc__item--h2"><a href="#其他补充">其他补充</a></li><li class="toc__item toc__item--h2"><a href="#感悟">感悟</a></li></ul></nav>
+    </aside>
+  </div>
+
+  <nav class="pager" aria-label="翻页"><a class="pager__link pager__link--next" href="mlp.html"><span class="pager__hint">下一篇</span><span class="pager__title">和神经网络的最初相遇：mlp</span></a></nav>
+
+  <section class="comments" id="comments" aria-label="评论"><div class="comments__head"><h2 class="comments__title">评论</h2><p class="comments__hint">评论由 GitHub 托管，刷新或重新部署都不会丢失。</p></div><div class="comments__mount" id="comments-mount"><p class="comments__loading">正在加载评论…</p></div></section>
+</article>
+
+</main>
+
+<footer class="footer">
+  <div class="footer__inner"><p class="footer__line">© 2026 我的博客</p><p class="footer__links"><a href="https://github.com/huan201/blog-maker" target="_blank" rel="noopener noreferrer">GitHub</a> · <a href="../feed.xml">RSS</a> · <a href="../sitemap.xml">Sitemap</a></p></div>
+</footer>
+
+<button class="to-top" id="to-top" type="button" aria-label="回到顶部" title="回到顶部">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V6M6 11l6-6 6 6"/></svg>
+</button>
+
+<script>window.__BLOG__ = {"base":"../","basePath":"/","accent":"#0071e3","appearance":"auto","metrics":{"enabled":true,"provider":"local","namespace":"huan201-blog","site_code":"","endpoint":""},"viewsSeed":{},"comments":{"provider":"utterances","repo":"huan201/blog-maker","repo_id":"","category":"Announcements","category_id":"","mapping":"pathname","issue_term":"pathname","label":"comment","reactions_enabled":true,"input_position":"top","lazy":true}};</script>
+<script src="../static/js/app.js" defer></script>
+<script src="../static/js/metrics.js" defer></script>
+<script src="../static/js/comments.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>
+(function () {
+  if (!window.hljs) return;
+  var blocks = document.querySelectorAll('.code-block pre code');
+  for (var i = 0; i < blocks.length; i += 1) {
+    try { hljs.highlightElement(blocks[i]); } catch (e) {}
+  }
+})();
+</script>
+</body>
+</html>
